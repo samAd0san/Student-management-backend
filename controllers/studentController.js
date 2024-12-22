@@ -383,3 +383,53 @@ exports.getStudentMarks = async (req, res) => {
     return res.status(500).json({ message: "Server error.", error: error.message });
   }
 };
+
+// Get marks of all subjects for verification of a student for SEE
+exports.getStudentAllMarks = async (req, res) => {
+  const { rollNo } = req.params;
+
+  try {
+    // Find the student by roll number
+    const student = await Student.findOne({ rollNo });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Fetch the student's marks for all exams (AT-1, AT-2, AT-3, ST-1, ST-2, ST-3, CIE-1, CIE-2)
+    const marks = await Marks.find({
+      student: student._id,
+      examType: { $in: ['ASSIGNMENT-1', 'ASSIGNMENT-2', 'ASSIGNMENT-3', 'SURPRISE TEST-1', 'SURPRISE TEST-2', 'SURPRISE TEST-3', 'CIE-1', 'CIE-2'] }
+    }).populate('subject', 'name'); // Populating subject name
+
+    if (!marks.length) {
+      return res.status(404).json({ message: "No marks found for the specified exams." });
+    }
+
+    // Structure the result by subject and exam type
+    const result = marks.reduce((acc, mark) => {
+      const subjectName = mark.subject.name;
+      if (!acc[subjectName]) {
+        acc[subjectName] = {};
+      }
+      acc[subjectName][mark.examType] = {
+        marks: mark.marks,
+      };
+      return acc;
+    }, {});
+
+    // Return the structured marks data
+    return res.status(200).json({
+      student: student.name,
+      rollNo: student.rollNo,
+      year: student.currentYear,
+      semester: student.currentSemester,
+      section: student.section,
+      marks: result
+    });
+
+  } catch (error) {
+    console.error("Error fetching student marks:", error);  // Log the error details
+    return res.status(500).json({ message: "Server error.", error: error.message });
+  }
+};

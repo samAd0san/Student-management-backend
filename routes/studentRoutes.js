@@ -43,4 +43,8 @@ router.put('/:rollNo', studentController.updateStudent);
 // Delete a student
 router.delete('/:rollNo', studentController.deleteStudent);
 
+// Get marks of all subjects for verification of a student for SEE
+// http://localhost:3000/api/students/getall/160921733078
+router.get('/getall/:rollNo', studentController.getStudentAllMarks);
+
 module.exports = router;
