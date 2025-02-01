@@ -5,6 +5,7 @@ const cors = require('cors');
 const studentRoutes = require('./routes/studentRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
 const marksRoutes = require('./routes/marksRoutes');
+const InternalMarks = require('./routes/internalMarksRoutes');
 
 const app = express();
 const PORT = 3000;
@@ -18,7 +19,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/students', studentRoutes);
 app.use('/api/subjects', subjectRoutes);
-app.use('/api/marks', marksRoutes)
+app.use('/api/marks', marksRoutes);
+app.use('/api/internalMarks', InternalMarks);
 
 app.listen(PORT, (err) => {
     if (!err) {
