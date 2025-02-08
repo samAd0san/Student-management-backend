@@ -6,9 +6,10 @@ const studentRoutes = require('./routes/studentRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
 const marksRoutes = require('./routes/marksRoutes');
 const InternalMarks = require('./routes/internalMarksRoutes');
+const courseRoutes = require('./routes/courseRoutes');
 
 const app = express();
-const PORT = 3001;
+const PORT = 3000 || process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
@@ -21,6 +22,8 @@ app.use('/api/students', studentRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/marks', marksRoutes);
 app.use('/api/internalMarks', InternalMarks);
+app.use('/api/co', courseRoutes);
+
 
 app.listen(PORT, (err) => {
     if (!err) {

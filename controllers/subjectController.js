@@ -22,7 +22,7 @@ exports.getAllSubjects = async (req, res) => {
   }
 };
 
-// Get subjects by branch
+// Get subjects by branch --> Use this
 exports.getSubjectsByBranchYearSemester = async (req, res) => {
   try {
     const { branch, year, semester } = req.params; // Destructure branch, year, and semester from request parameters
