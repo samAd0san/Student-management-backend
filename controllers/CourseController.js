@@ -76,3 +76,21 @@ exports.getCOPOMatrix = async (req, res) => {
         res.status(500).json({ message: 'Error fetching CO-PO Matrix', error });
     }
 };
+
+// Partially update a CO-PO Matrix entry
+exports.updateCOPOMatrix = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updatedData = req.body;
+
+        const updatedCOPOMatrix = await COPOMatrix.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
+
+        if (!updatedCOPOMatrix) {
+            return res.status(404).json({ message: 'CO-PO Matrix entry not found' });
+        }
+
+        res.json(updatedCOPOMatrix);
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating CO-PO Matrix', error });
+    }
+};

@@ -15,5 +15,8 @@ router.patch('/updateCourseOutcome/:id', CourseController.updateCourseOutcome);
 router.post('/createCOPOMatrix', CourseController.createCOPOMatrix);
 // Get all CO-PO Matrix entries for a specific course outcome
 router.get('/getCOPOMatrix/:course', CourseController.getCOPOMatrix);
+// Update a CO-PO Matrix entry partially
+router.patch('/updateCOPOMatrix/:id', CourseController.updateCOPOMatrix);
+
 
 module.exports = router;
