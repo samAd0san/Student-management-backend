@@ -22,6 +22,23 @@ exports.getCourseOutcomes = async (req, res) => {
     }
 };
 
+// Partially update a Course Outcome
+exports.updateCourseOutcome = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updatedData = req.body;
+
+        const updatedCourseOutcome = await CourseOutcome.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
+
+        if (!updatedCourseOutcome) {
+            return res.status(404).json({ message: 'Course Outcome not found' });
+        }
+
+        res.json(updatedCourseOutcome);
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating course outcome', error });
+    }
+};
 
 /** Course Outcome and Project Outcome Mapping  */
 const COPOMatrix = require('../models/COPOMatrixModel');

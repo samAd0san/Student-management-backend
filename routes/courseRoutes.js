@@ -7,6 +7,9 @@ const CourseController = require('../controllers/CourseController');
 router.post('/createCourseOutcome', CourseController.createCourseOutcome);
 // Get all Course Outcomes for a specific course
 router.get('/getCourseOutcomes/:course', CourseController.getCourseOutcomes);
+// Update a Course Outcome partially
+router.patch('/updateCourseOutcome/:id', CourseController.updateCourseOutcome);
+
 
 // Create a new CO-PO Matrix entry
 router.post('/createCOPOMatrix', CourseController.createCOPOMatrix);
