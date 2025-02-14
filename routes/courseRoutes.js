@@ -31,4 +31,9 @@ router.delete('/deleteCOPOMatrixBySubject/:subject', CourseController.deleteCOPO
 
 
 
+// Create a new CO-PO Average entry
+router.post('/saveCOPOAverage', CourseController.saveCOPOAverage);
+// Get all CO-PO Average entries for a specific course
+router.get('/getCOPOAverage/:course', CourseController.getCOPOAverage);
+
 module.exports = router;

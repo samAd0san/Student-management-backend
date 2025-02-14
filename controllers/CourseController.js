@@ -222,3 +222,48 @@ exports.deleteCOPOMatrixBySubject = async (req, res) => {
         res.status(500).json({ message: 'Error deleting CO-PO Matrix entries for the specified subject', error });
     }
 };
+
+const COPOAverage = require('../models/COPOAverageModel');
+
+// Calculate and store average PO attainment for a course
+exports.saveCOPOAverage = async (req, res) => {
+    const { course, averages } = req.body; // `averages` should be an array of 12 values
+    
+    if (!course || !averages || averages.length !== 12) {
+        return res.status(400).json({ error: 'Invalid data format' });
+    }
+
+    try {
+        const updateData = {};
+        averages.forEach((avg, index) => {
+            updateData[`po${index + 1}_avg`] = avg;
+        });
+
+        const updatedAverage = await COPOAverage.findOneAndUpdate(
+            { course },
+            { $set: updateData },
+            { new: true, upsert: true }
+        );
+
+        res.status(200).json(updatedAverage);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to save averages' });
+    }
+};
+
+// Get average PO attainment for a course
+exports.getCOPOAverage = async (req, res) => {
+    const { course } = req.params;
+
+    try {
+        const copoAverage = await COPOAverage.findOne({ course });
+
+        if (!copoAverage) {
+            return res.status(404).json({ error: 'No data found for this course' });
+        }
+
+        res.status(200).json(copoAverage);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch averages' });
+    }
+};
