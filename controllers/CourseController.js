@@ -66,6 +66,62 @@ exports.updateCourseOutcome = async (req, res) => {
     }
 };
 
+// Delete a Course Outcome by ID
+exports.deleteCourseOutcome = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find and delete the Course Outcome
+        const deletedCourseOutcome = await CourseOutcome.findByIdAndDelete(id);
+        if (!deletedCourseOutcome) {
+            return res.status(404).json({ message: 'Course Outcome not found' });
+        }
+
+        // Delete the corresponding CO-PO Matrix entry
+        await COPOMatrix.deleteMany({ courseOutcome: deletedCourseOutcome.courseOutcome });
+
+        res.json({ message: 'Course Outcome and related CO-PO Matrix entries deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting course outcome', error });
+    }
+};
+
+// Delete all Course Outcomes for a specific subject
+exports.deleteCourseOutcomesBySubject = async (req, res) => {
+    try {
+        const { subject } = req.params;
+
+        // Find and delete all Course Outcomes related to the subject
+        const deletedCourseOutcomes = await CourseOutcome.deleteMany({ course: subject });
+
+        if (deletedCourseOutcomes.deletedCount === 0) {
+            return res.status(404).json({ message: 'No Course Outcomes found for the specified subject' });
+        }
+
+        // Delete the corresponding CO-PO Matrix entries
+        await COPOMatrix.deleteMany({ course: subject });
+
+        res.json({ message: `All Course Outcomes and CO-PO Matrix entries for subject '${subject}' deleted successfully` });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting course outcomes for the specified subject', error });
+    }
+};
+
+// Delete all Course Outcomes and corresponding CO-PO Matrix entries
+exports.deleteAllCourseOutcomes = async (req, res) => {
+    try {
+        // Delete all Course Outcomes
+        await CourseOutcome.deleteMany({});
+        
+        // Delete all CO-PO Matrix entries
+        await COPOMatrix.deleteMany({});
+
+        res.json({ message: 'All Course Outcomes and CO-PO Matrix entries deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting all course outcomes', error });
+    }
+};
+
 
 
 /** Course Outcome and Project Outcome Mapping  */
@@ -128,5 +184,86 @@ exports.updateCOPOMatrix = async (req, res) => {
         res.json(updatedCOPOMatrix);
     } catch (error) {
         res.status(500).json({ message: 'Error updating CO-PO Matrix', error });
+    }
+};
+
+// Delete CO-PO Matrix entry by ID
+exports.deleteCOPOMatrixById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find and delete the CO-PO Matrix entry by ID
+        const deletedEntry = await COPOMatrix.findByIdAndDelete(id);
+
+        if (!deletedEntry) {
+            return res.status(404).json({ message: 'CO-PO Matrix entry not found' });
+        }
+
+        res.json({ message: 'CO-PO Matrix entry deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting CO-PO Matrix entry', error });
+    }
+};
+
+// Delete all CO-PO Matrix entries for a specific course/subject
+exports.deleteCOPOMatrixBySubject = async (req, res) => {
+    try {
+        const { subject } = req.params;
+
+        // Delete all CO-PO Matrix entries for the given subject
+        const deletedEntries = await COPOMatrix.deleteMany({ course: subject });
+
+        if (deletedEntries.deletedCount === 0) {
+            return res.status(404).json({ message: 'No CO-PO Matrix entries found for the specified subject' });
+        }
+
+        res.json({ message: `All CO-PO Matrix entries for subject '${subject}' deleted successfully` });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting CO-PO Matrix entries for the specified subject', error });
+    }
+};
+
+const COPOAverage = require('../models/COPOAverageModel');
+
+// Calculate and store average PO attainment for a course
+exports.saveCOPOAverage = async (req, res) => {
+    const { course, averages } = req.body; // `averages` should be an array of 12 values
+    
+    if (!course || !averages || averages.length !== 12) {
+        return res.status(400).json({ error: 'Invalid data format' });
+    }
+
+    try {
+        const updateData = {};
+        averages.forEach((avg, index) => {
+            updateData[`po${index + 1}_avg`] = avg;
+        });
+
+        const updatedAverage = await COPOAverage.findOneAndUpdate(
+            { course },
+            { $set: updateData },
+            { new: true, upsert: true }
+        );
+
+        res.status(200).json(updatedAverage);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to save averages' });
+    }
+};
+
+// Get average PO attainment for a course
+exports.getCOPOAverage = async (req, res) => {
+    const { course } = req.params;
+
+    try {
+        const copoAverage = await COPOAverage.findOne({ course });
+
+        if (!copoAverage) {
+            return res.status(404).json({ error: 'No data found for this course' });
+        }
+
+        res.status(200).json(copoAverage);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch averages' });
     }
 };
