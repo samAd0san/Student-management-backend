@@ -64,6 +64,46 @@ exports.getInternalMarksBySubjectExamType = async (req, res) => {
   }
 };
 
+// Get total internal marks by subject and exam type
+exports.getQuestionTotals = async (req, res) => {
+  try {
+    const { subject_id, examType } = req.params;
+
+    const internalMarks = await InternalMarks.find({ 
+      subject: subject_id, 
+      examType 
+    }).populate("student", "rollNo name");
+
+    const questionTotals = internalMarks.map(mark => {
+      const q1Total = mark.marks.Q1.a + mark.marks.Q1.b + mark.marks.Q1.c;
+      const q2Total = mark.marks.Q2.a + mark.marks.Q2.b;
+      const q3Total = mark.marks.Q3.a + mark.marks.Q3.b;
+      const q4Total = mark.marks.Q4.a + mark.marks.Q4.b;
+
+      return {
+        student: {
+          id: mark.student._id,
+          rollNo: mark.student.rollNo,
+          name: mark.student.name
+        },
+        internalMarks: {
+          Q1: q1Total,
+          Q2: q2Total,
+          Q3: q3Total,
+          Q4: q4Total
+        }
+      };
+    });
+
+    res.status(200).json(questionTotals);
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error calculating question totals", 
+      error: error.message 
+    });
+  }
+};
+
 // Update internal marks by subject, exam type, and id
 exports.updateInternalMarksBySubjectExamType = async (req, res) => {
   try {

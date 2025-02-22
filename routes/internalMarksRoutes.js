@@ -10,6 +10,9 @@ router.route("/")
 // Get internal marks by subject and exam type
 router.get("/:subject_id/:examType", internalMarksController.getInternalMarksBySubjectExamType);
 
+// Get total internal marks by subject and exam type
+router.get("/totals/:subject_id/:examType", internalMarksController.getQuestionTotals)
+
 // Get internal marks by year, semester, section, and exam type
 router.get("/:year/:semester/:section/:examType", internalMarksController.getInternalMarksByYearSemesterSectionExam);
 
