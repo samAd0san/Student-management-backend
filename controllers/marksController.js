@@ -69,6 +69,105 @@ exports.getMarks = async (req, res) => {
   }
 };
 
+// Get Avg of best 2 surprise tests AND assignments for a specific subject
+exports.getAvgOfBestTwoSurpriseAndAssignment = async (req, res) => {
+  try {
+    const { subject_id } = req.params;
+    
+    // Get all surprise tests and assignments marks for the subject
+    const allMarks = await Marks.find({
+      subject: subject_id,
+      examType: { 
+        $in: [
+          'SURPRISE TEST-1', 'SURPRISE TEST-2', 'SURPRISE TEST-3',
+          'ASSIGNMENT-1', 'ASSIGNMENT-2', 'ASSIGNMENT-3'
+        ] 
+      }
+    }).populate('student', 'rollNo name');
+
+    // Group marks by student
+    const studentMarks = {};
+    
+    allMarks.forEach(mark => {
+      const studentId = mark.student._id.toString();
+      
+      if (!studentMarks[studentId]) {
+        studentMarks[studentId] = {
+          student: {
+            id: mark.student._id,
+            rollNo: mark.student.rollNo,
+            name: mark.student.name
+          },
+          surpriseTests: [],
+          assignments: []
+        };
+      }
+      
+      // Separate surprise tests and assignments
+      if (mark.examType.includes('SURPRISE TEST')) {
+        studentMarks[studentId].surpriseTests.push({
+          examType: mark.examType,
+          marks: mark.marks
+        });
+      } else {
+        studentMarks[studentId].assignments.push({
+          examType: mark.examType,
+          marks: mark.marks
+        });
+      }
+    });
+
+    // Custom rounding function
+    const customRound = (number) => {
+      return number >= 9.5 ? 10 : Math.floor(number);
+    };
+
+    // Calculate averages for each student
+    const results = Object.values(studentMarks).map(student => {
+      // Calculate for surprise tests
+      const bestTwoSurpriseTests = student.surpriseTests
+        .map(test => test.marks)
+        .sort((a, b) => b - a)
+        .slice(0, 2);
+      
+      const surpriseTestAvg = bestTwoSurpriseTests.length > 0 
+        ? bestTwoSurpriseTests.reduce((a, b) => a + b, 0) / 2
+        : 0;
+
+      // Calculate for assignments
+      const bestTwoAssignments = student.assignments
+        .map(assignment => assignment.marks)
+        .sort((a, b) => b - a)
+        .slice(0, 2);
+      
+      const assignmentAvg = bestTwoAssignments.length > 0 
+        ? bestTwoAssignments.reduce((a, b) => a + b, 0) / 2
+        : 0;
+
+      return {
+        student: student.student,
+        // surpriseTests: { 
+          // allTests: student.surpriseTests,      // Uncomment to include all tests in the response
+          // bestTwo: bestTwoSurpriseTests,
+          surpriseTestAverage: customRound(surpriseTestAvg),
+        // },
+        // assignments: {
+          // allAssignments: student.assignments,
+          // bestTwo: bestTwoAssignments,
+          assignmentAverage: customRound(assignmentAvg)
+        // }
+      };
+    });
+
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error calculating assessments average", 
+      error: error.message 
+    });
+  }
+};
+
 // Get Marks for Students based on year, semester, section, and exam type
 exports.getMarksByClassAndExam = async (req, res) => {
   const { year, semester, section, examType } = req.params;

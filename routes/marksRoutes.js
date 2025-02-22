@@ -5,6 +5,7 @@ const {
   getMarks,
   getMarksByClassAndExam,
   updateMarks,
+  getAvgOfBestTwoSurpriseAndAssignment,
 } = require("../controllers/marksController");
 
 // Add/Update Marks
@@ -15,6 +16,10 @@ router.put("/:subject_id/:examType/:id", updateMarks); // Use id to identify the
 
 // Get Marks for a Subject and Exam Type
 router.get("/:subject_id/:examType", getMarks);
+
+// Get Surprise test-1,2,3 AND assignment-1,2,3 marks Avg of best of 2 tests for a Subject
+// http://localhost:3000/api/marks/getAvgOfBestTwo/subject/670e17ac56900e5e6a8cb396
+router.get("/getAvgOfBestTwo/subject/:subject_id", getAvgOfBestTwoSurpriseAndAssignment);
 
 // Get Marks by Year, Semester, Section, and Exam Type
 router.get("/:year/:semester/:section/:examType", getMarksByClassAndExam);
