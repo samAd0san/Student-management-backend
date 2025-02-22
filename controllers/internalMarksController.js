@@ -87,10 +87,10 @@ exports.getQuestionTotals = async (req, res) => {
           name: mark.student.name
         },
         internalMarks: {
-          Q1: q1Total,
-          Q2: q2Total,
-          Q3: q3Total,
-          Q4: q4Total
+          saqs: q1Total,
+          Q1: q2Total,
+          Q2: q3Total,
+          Q3: q4Total
         }
       };
     });
