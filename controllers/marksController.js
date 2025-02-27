@@ -1,5 +1,5 @@
 const Marks = require("../models/marksModel");
-
+const InternalMarks = require("../models/internalMarksModel");
 // Add/Update Marks for a Single Student
 exports.addMarks = async (req, res) => {
   const {
@@ -163,6 +163,165 @@ exports.getAvgOfBestTwoSurpriseAndAssignment = async (req, res) => {
   } catch (error) {
     res.status(500).json({ 
       message: "Error calculating assessments average", 
+      error: error.message 
+    });
+  }
+};
+
+// get body with combined Avg of best 2 ST/AT and total internal marks for examType for a subject
+exports.getAttainmentData = async (req, res) => {
+  try {
+    const { subject_id, examType } = req.params;
+
+    // 1. Get internal marks data
+    const internalMarks = await InternalMarks.find({ 
+      subject: subject_id, 
+      examType 
+    }).populate("student", "rollNo name");
+
+    const internalMarksMap = {};
+    
+    // Process internal marks and organize by studentId
+    internalMarks.forEach(mark => {
+      const studentId = mark.student._id.toString();
+      
+      const q1Total = mark.marks.Q1.a + mark.marks.Q1.b + mark.marks.Q1.c;
+      const q2Total = mark.marks.Q2.a + mark.marks.Q2.b;
+      const q3Total = mark.marks.Q3.a + mark.marks.Q3.b;
+      const q4Total = mark.marks.Q4.a + mark.marks.Q4.b;
+
+      internalMarksMap[studentId] = {
+        student: {
+          id: mark.student._id,
+          rollNo: mark.student.rollNo,
+          name: mark.student.name
+        },
+        internalMarks: {
+          saqs: q1Total,
+          Q1: q2Total,
+          Q2: q3Total,
+          Q3: q4Total
+        }
+      };
+    });
+
+    // 2. Get surprise tests and assignments data
+    const allMarks = await Marks.find({
+      subject: subject_id,
+      examType: { 
+        $in: [
+          'SURPRISE TEST-1', 'SURPRISE TEST-2', 'SURPRISE TEST-3',
+          'ASSIGNMENT-1', 'ASSIGNMENT-2', 'ASSIGNMENT-3'
+        ] 
+      }
+    }).populate('student', 'rollNo name');
+
+    // Group marks by student
+    const studentMarks = {};
+    
+    allMarks.forEach(mark => {
+      const studentId = mark.student._id.toString();
+      
+      if (!studentMarks[studentId]) {
+        studentMarks[studentId] = {
+          student: {
+            id: mark.student._id,
+            rollNo: mark.student.rollNo,
+            name: mark.student.name
+          },
+          surpriseTests: [],
+          assignments: []
+        };
+      }
+      
+      // Separate surprise tests and assignments
+      if (mark.examType.includes('SURPRISE TEST')) {
+        studentMarks[studentId].surpriseTests.push({
+          examType: mark.examType,
+          marks: mark.marks
+        });
+      } else {
+        studentMarks[studentId].assignments.push({
+          examType: mark.examType,
+          marks: mark.marks
+        });
+      }
+    });
+
+    // Custom rounding function
+    const customRound = (number) => {
+      return number >= 9.5 ? 10 : Math.floor(number);
+    };
+
+    // Process surprise tests and assignments
+    const processedMarks = {};
+    
+    Object.entries(studentMarks).forEach(([studentId, data]) => {
+      // Calculate for surprise tests
+      const bestTwoSurpriseTests = data.surpriseTests
+        .map(test => test.marks)
+        .sort((a, b) => b - a)
+        .slice(0, 2);
+      
+      const surpriseTestAvg = bestTwoSurpriseTests.length > 0 
+        ? bestTwoSurpriseTests.reduce((a, b) => a + b, 0) / 2
+        : 0;
+
+      // Calculate for assignments
+      const bestTwoAssignments = data.assignments
+        .map(assignment => assignment.marks)
+        .sort((a, b) => b - a)
+        .slice(0, 2);
+      
+      const assignmentAvg = bestTwoAssignments.length > 0 
+        ? bestTwoAssignments.reduce((a, b) => a + b, 0) / 2
+        : 0;
+
+      processedMarks[studentId] = {
+        student: data.student,
+        surpriseTestAverage: customRound(surpriseTestAvg),
+        assignmentAverage: customRound(assignmentAvg)
+      };
+    });
+
+    // 3. Combine the data from both sources
+    const combinedResults = new Map();
+    
+    // First, add all students from processedMarks
+    Object.values(processedMarks).forEach(studentData => {
+      const studentId = studentData.student.id.toString();
+      combinedResults.set(studentId, {
+        student: studentData.student,
+        surpriseTestAverage: studentData.surpriseTestAverage,
+        assignmentAverage: studentData.assignmentAverage
+      });
+    });
+    
+    // Then, merge in the internal marks data
+    Object.values(internalMarksMap).forEach(studentData => {
+      const studentId = studentData.student.id.toString();
+      
+      if (combinedResults.has(studentId)) {
+        // Student exists, add internal marks
+        combinedResults.get(studentId).internalMarks = studentData.internalMarks;
+      } else {
+        // Student doesn't exist in processedMarks, add new entry
+        combinedResults.set(studentId, {
+          student: studentData.student,
+          surpriseTestAverage: 0, // Default values for missing data
+          assignmentAverage: 0,
+          internalMarks: studentData.internalMarks
+        });
+      }
+    });
+    
+    // Convert Map to array for response
+    const results = Array.from(combinedResults.values());
+    
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error retrieving attainment data", 
       error: error.message 
     });
   }
