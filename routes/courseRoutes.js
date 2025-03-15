@@ -3,37 +3,23 @@ const router = express.Router();
 
 const CourseController = require('../controllers/CourseController');
 
-// Create a new Course Outcome
-router.post('/createCourseOutcome', CourseController.createCourseOutcome);
-// Get all Course Outcomes for a specific course
-router.get('/getCourseOutcomes/:course', CourseController.getCourseOutcomes);
-// Update a Course Outcome partially
-router.patch('/updateCourseOutcome/:id', CourseController.updateCourseOutcome);
-// Delete a Course Outcome by ID
-router.delete('/deleteCourseOutcomeById/:id', CourseController.deleteCourseOutcome);
-// Delete all Course Outcomes for a specific course
-router.delete('/deleteCourseOutcomesBySubject/:subject', CourseController.deleteCourseOutcomesBySubject);
-// Delete all Course Outcomes
-router.delete('/deleteCourseOutcome', CourseController.deleteAllCourseOutcomes);
+/** CO Routes */
+router.post('/course-outcomes', CourseController.createCO);
+router.get('/course-outcomes/:subjectId', CourseController.getCOsBySubjectId);
+router.patch('/course-outcomes/:coId', CourseController.updateCOById);
+router.delete('/course-outcome/:coId', CourseController.deleteCOById);
+router.delete('/course-outcomes/:subjectId', CourseController.deleteAllCOsBySubjectId);
 
+/** COPO Routes */
+router.post('/copo-matrix', CourseController.createCOPO);
+router.get('/copo-matrix/:subjectId', CourseController.getCOPOsbySubject);
+router.patch('/copo-matrix/:copoId', CourseController.updateCOPOById);
+router.delete('/copo-matrix/:copoId', CourseController.deleteCOPOById);
+router.delete('/copo-matrices/:subjectId', CourseController.deleteAllCOPOBySubjectId);
 
-
-// Create a new CO-PO Matrix entry
-router.post('/createCOPOMatrix', CourseController.createCOPOMatrix);
-// Get all CO-PO Matrix entries for a specific course outcome
-router.get('/getCOPOMatrix/:course', CourseController.getCOPOMatrix);
-// Update a CO-PO Matrix entry partially
-router.patch('/updateCOPOMatrix/:id', CourseController.updateCOPOMatrix);
-// Delete a CO-PO Matrix entry by ID
-router.delete('/deleteCOPOMatrixById/:id', CourseController.deleteCOPOMatrixById);
-// Delete all CO-PO Matrix entries for a specific course outcome
-router.delete('/deleteCOPOMatrixBySubject/:subject', CourseController.deleteCOPOMatrixBySubject);
-
-
-
-// Create a new CO-PO Average entry
-router.post('/saveCOPOAverage', CourseController.saveCOPOAverage);
-// Get all CO-PO Average entries for a specific course
-router.get('/getCOPOAverage/:course', CourseController.getCOPOAverage);
+/** COPO Average Routes */
+router.post('/copo-average/:subjectId', CourseController.saveCOPOAverage);
+router.get('/copo-average/:subjectId', CourseController.getCOPOAverage);
+router.delete('/copo-average/:subjectId', CourseController.deleteCOPOAverageBySubject);
 
 module.exports = router;

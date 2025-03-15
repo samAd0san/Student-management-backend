@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const COPOAverageSchema = new mongoose.Schema({
-    course: { type: String, required: true, unique: true },
+    subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true, unique: true }, 
     po1_avg: { type: Number, default: 0 },
     po2_avg: { type: Number, default: 0 },
     po3_avg: { type: Number, default: 0 },
@@ -13,7 +13,9 @@ const COPOAverageSchema = new mongoose.Schema({
     po9_avg: { type: Number, default: 0 },
     po10_avg: { type: Number, default: 0 },
     po11_avg: { type: Number, default: 0 },
-    po12_avg: { type: Number, default: 0 }
+    po12_avg: { type: Number, default: 0 },
+    pso1_avg: { type: Number, default: 0 },
+    pso2_avg: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model('COPOAverage', COPOAverageSchema);

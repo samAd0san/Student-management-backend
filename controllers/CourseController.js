@@ -1,269 +1,321 @@
-const CourseOutcome = require('../models/CourseOutcomeModel');
+const CourseOutcome = require('../models/courseOutcomeModel');
+const Subject = require('../models/subjectModel');
 
-// Create a new Course Outcome
-// Create a new Course Outcome and update CO-PO Matrix
-exports.createCourseOutcome = async (req, res) => {
+/** CO APIs */
+exports.createCO= async (req, res) => {
+  try {
+    const { subjectId, coNo, courseOutcome, knowledgeLevel } = req.body;
+
+    // Check if the subject exists
+    const subjectExists = await Subject.findById(subjectId);
+    if (!subjectExists) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    // Create and save new Course Outcome
+    const newCourseOutcome = new CourseOutcome({
+      subject: subjectId,
+      coNo,
+      courseOutcome,
+      knowledgeLevel,
+    });
+
+    await newCourseOutcome.save();
+    res.status(201).json(newCourseOutcome);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getCOsBySubjectId = async (req, res) => {
     try {
-        const { course, coNo, courseOutcome, knowledgeLevel } = req.body;
-
-        // Create the new course outcome
-        const newCourseOutcome = new CourseOutcome({ course, coNo, courseOutcome, knowledgeLevel });
-        await newCourseOutcome.save();
-
-        // Create a new CO-PO Matrix entry for this course outcome
-        const newCOPOMatrix = new COPOMatrix({
-            course,
-            courseOutcome,
-            po1: 0, po2: 0, po3: 0, po4: 0, po5: 0, po6: 0, po7: 0, po8: 0, po9: 0, po10: 0, po11: 0, po12: 0
-        });
-
-        // Save the CO-PO Matrix entry
-        await newCOPOMatrix.save();
-
-        // Respond with the new Course Outcome and CO-PO Matrix
-        res.status(201).json({ courseOutcome: newCourseOutcome, coPoMatrix: newCOPOMatrix });
+      const { subjectId } = req.params;
+  
+      // Check if the subject exists
+      const subjectExists = await Subject.findById(subjectId);
+      if (!subjectExists) {
+        return res.status(404).json({ message: 'Subject not found' });
+      }
+  
+      // Find all Course Outcomes for the given subjectId
+      const courseOutcomes = await CourseOutcome.find({ subject: subjectId });
+  
+      if (courseOutcomes.length === 0) {
+        return res.status(404).json({ message: 'No Course Outcomes found for this subject' });
+      }
+  
+      res.status(200).json(courseOutcomes);
     } catch (error) {
-        res.status(500).json({ message: 'Error creating course outcome', error });
+      res.status(500).json({ message: error.message });
+    }
+};
+  
+exports.updateCOById = async (req, res) => {
+    try {
+      const { coId } = req.params;
+  
+      // Find and update Course Outcome
+      const updatedCO = await CourseOutcome.findByIdAndUpdate(coId, req.body, { new: true });
+  
+      if (!updatedCO) {
+        return res.status(404).json({ message: 'Course Outcome not found' });
+      }
+  
+      res.status(200).json(updatedCO);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
 };
 
-// Get all Course Outcomes for a specific course
-exports.getCourseOutcomes = async (req, res) => {
+exports.deleteCOById = async (req, res) => {
     try {
-        const courseOutcomes = await CourseOutcome.find({ course: req.params.course });
-        res.json(courseOutcomes);
+      const { coId } = req.params;
+  
+      // Find and delete the Course Outcome
+      const deletedCO = await CourseOutcome.findByIdAndDelete(coId);
+  
+      if (!deletedCO) {
+        return res.status(404).json({ message: 'Course Outcome not found' });
+      }
+  
+      res.status(200).json({ message: 'Course Outcome deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching course outcomes', error });
+      res.status(500).json({ message: error.message });
     }
 };
-
-// Partially update a Course Outcome and update corresponding CO-PO Matrix
-exports.updateCourseOutcome = async (req, res) => {
+  
+exports.deleteAllCOsBySubjectId = async (req, res) => {
     try {
-        const { id } = req.params;
-        const updatedData = req.body;
-
-        // Find the existing Course Outcome
-        const existingCourseOutcome = await CourseOutcome.findById(id);
-        if (!existingCourseOutcome) {
-            return res.status(404).json({ message: 'Course Outcome not found' });
-        }
-
-        // Update the Course Outcome
-        const updatedCourseOutcome = await CourseOutcome.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
-
-        // Update the corresponding CO-PO Matrix if the courseOutcome field has changed
-        if (updatedCourseOutcome.courseOutcome !== existingCourseOutcome.courseOutcome) {
-            await COPOMatrix.updateMany(
-                { courseOutcome: existingCourseOutcome.courseOutcome },
-                { courseOutcome: updatedCourseOutcome.courseOutcome }
-            );
-        }
-
-        res.json({ updatedCourseOutcome, message: 'Course Outcome and CO-PO Matrix updated successfully' });
+      const { subjectId } = req.params;
+  
+      // Check if the subject exists
+      const subjectExists = await Subject.findById(subjectId);
+      if (!subjectExists) {
+        return res.status(404).json({ message: 'Subject not found' });
+      }
+  
+      // Delete all Course Outcomes for the given subjectId
+      const deletedResult = await CourseOutcome.deleteMany({ subject: subjectId });
+  
+      if (deletedResult.deletedCount === 0) {
+        return res.status(404).json({ message: 'No Course Outcomes found for this subject' });
+      }
+  
+      res.status(200).json({ message: `Deleted ${deletedResult.deletedCount} Course Outcomes successfully` });
     } catch (error) {
-        res.status(500).json({ message: 'Error updating course outcome and CO-PO matrix', error });
+      res.status(500).json({ message: error.message });
     }
 };
-
-// Delete a Course Outcome by ID
-exports.deleteCourseOutcome = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        // Find and delete the Course Outcome
-        const deletedCourseOutcome = await CourseOutcome.findByIdAndDelete(id);
-        if (!deletedCourseOutcome) {
-            return res.status(404).json({ message: 'Course Outcome not found' });
-        }
-
-        // Delete the corresponding CO-PO Matrix entry
-        await COPOMatrix.deleteMany({ courseOutcome: deletedCourseOutcome.courseOutcome });
-
-        res.json({ message: 'Course Outcome and related CO-PO Matrix entries deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting course outcome', error });
-    }
-};
-
-// Delete all Course Outcomes for a specific subject
-exports.deleteCourseOutcomesBySubject = async (req, res) => {
-    try {
-        const { subject } = req.params;
-
-        // Find and delete all Course Outcomes related to the subject
-        const deletedCourseOutcomes = await CourseOutcome.deleteMany({ course: subject });
-
-        if (deletedCourseOutcomes.deletedCount === 0) {
-            return res.status(404).json({ message: 'No Course Outcomes found for the specified subject' });
-        }
-
-        // Delete the corresponding CO-PO Matrix entries
-        await COPOMatrix.deleteMany({ course: subject });
-
-        res.json({ message: `All Course Outcomes and CO-PO Matrix entries for subject '${subject}' deleted successfully` });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting course outcomes for the specified subject', error });
-    }
-};
-
-// Delete all Course Outcomes and corresponding CO-PO Matrix entries
-exports.deleteAllCourseOutcomes = async (req, res) => {
-    try {
-        // Delete all Course Outcomes
-        await CourseOutcome.deleteMany({});
-        
-        // Delete all CO-PO Matrix entries
-        await COPOMatrix.deleteMany({});
-
-        res.json({ message: 'All Course Outcomes and CO-PO Matrix entries deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting all course outcomes', error });
-    }
-};
-
-
-
-/** Course Outcome and Project Outcome Mapping  */
+  
+/** COPO APIs */
 const COPOMatrix = require('../models/COPOMatrixModel');
 
-// Create a new CO-PO Matrix entry
-exports.createCOPOMatrix = async (req, res) => {
+exports.createCOPO = async (req, res) => {
     try {
-        const { course, courseOutcome, po1, po2, po3, po4, po5, po6, po7, po8, po9, po10, po11, po12 } = req.body;
+        const { subjectId, coId, po1, po2, po3, po4, po5, po6, po7, po8, po9, po10, po11, po12, pso1, pso2 } = req.body;
 
-        // Creating a new CO-PO matrix entry with the course field
-        const newCOPOMatrix = new COPOMatrix({
-            course, 
-            courseOutcome, 
-            po1, po2, po3, po4, po5, po6, po7, po8, po9, po10, po11, po12
-        });
-
-        // Saving the new entry to the database
-        await newCOPOMatrix.save();
-        
-        // Sending the response back with the created CO-PO matrix entry
-        res.status(201).json(newCOPOMatrix);
-    } catch (error) {
-        res.status(500).json({ message: 'Error creating CO-PO Matrix', error });
-    }
-};
-
-
-// Get CO-PO Matrix entries for a specific course
-exports.getCOPOMatrix = async (req, res) => {
-    try {
-        const { course } = req.params;  // Get subject from URL parameters
-        console.log('Querying for subject:', course);  // Log subject to debug
-        const coPoMatrix = await COPOMatrix.find({ course: course });
-
-        // Check if results are empty and log
-        if (coPoMatrix.length === 0) {
-            console.log('No CO-PO Matrix found for:', course);
+        // Validate Subject
+        const subject = await Subject.findById(subjectId);
+        if (!subject) {
+            return res.status(404).json({ message: "Subject not found" });
         }
 
-        res.json(coPoMatrix);  // Respond with the CO-PO Matrix data
+        // Validate Course Outcome
+        const courseOutcome = await CourseOutcome.findById(coId);
+        if (!courseOutcome) {
+            return res.status(404).json({ message: "Course Outcome not found" });
+        }
+
+        // Create a new COPO Matrix entry
+        const copoMatrix = new COPOMatrix({
+            subject: subjectId,
+            courseOutcome: coId,
+            po1, po2, po3, po4, po5, po6, po7, po8, po9, po10, po11, po12, pso1, pso2
+        });
+
+        await copoMatrix.save();
+
+        // Populate Subject and CourseOutcome in response
+        const populatedCOPOMatrix = await COPOMatrix.findById(copoMatrix._id)
+            .populate("subject", "name")
+            .populate("courseOutcome", "courseOutcome");
+
+        res.status(201).json(populatedCOPOMatrix);
     } catch (error) {
-        console.log('Error:', error);  // Log the error if any
-        res.status(500).json({ message: 'Error fetching CO-PO Matrix', error });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// Partially update a CO-PO Matrix entry
-exports.updateCOPOMatrix = async (req, res) => {
+exports.getCOPOsbySubject = async (req, res) => {
     try {
-        const { id } = req.params;
-        const updatedData = req.body;
+        const { subjectId } = req.params;
 
-        const updatedCOPOMatrix = await COPOMatrix.findByIdAndUpdate(id, updatedData, { new: true, runValidators: true });
+        // Validate Subject
+        const subject = await Subject.findById(subjectId);
+        if (!subject) {
+            return res.status(404).json({ message: "Subject not found" });
+        }
+
+        // Fetch all COPO entries for the given subject
+        /**
+         * populate replaces referenced ObjectIds with actual document data from the related
+         *  collection, allowing you to retrieve specific fields instead of just the ID.
+         */
+        const copoEntries = await COPOMatrix.find({ subject: subjectId })
+            .populate("subject", "name")
+            .populate("courseOutcome", "courseOutcome");
+
+        res.status(200).json(copoEntries);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateCOPOById = async (req, res) => {
+    try {
+        const { copoId } = req.params;
+        const updateData = req.body;
+
+        const updatedCOPOMatrix = await COPOMatrix.findByIdAndUpdate(copoId, updateData, { new: true })
+            .populate("subject", "name")
+            .populate("courseOutcome", "courseOutcome");
 
         if (!updatedCOPOMatrix) {
-            return res.status(404).json({ message: 'CO-PO Matrix entry not found' });
+            return res.status(404).json({ message: "COPO entry not found" });
         }
 
-        res.json(updatedCOPOMatrix);
+        res.status(200).json(updatedCOPOMatrix);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating CO-PO Matrix', error });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// Delete CO-PO Matrix entry by ID
-exports.deleteCOPOMatrixById = async (req, res) => {
+exports.deleteCOPOById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { copoId } = req.params;
 
-        // Find and delete the CO-PO Matrix entry by ID
-        const deletedEntry = await COPOMatrix.findByIdAndDelete(id);
+        const deletedCOPOMatrix = await COPOMatrix.findByIdAndDelete(copoId);
 
-        if (!deletedEntry) {
-            return res.status(404).json({ message: 'CO-PO Matrix entry not found' });
+        if (!deletedCOPOMatrix) {
+            return res.status(404).json({ message: "COPO entry not found" });
         }
 
-        res.json({ message: 'CO-PO Matrix entry deleted successfully' });
+        res.status(200).json({ message: "COPO entry deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting CO-PO Matrix entry', error });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// Delete all CO-PO Matrix entries for a specific course/subject
-exports.deleteCOPOMatrixBySubject = async (req, res) => {
+exports.deleteAllCOPOBySubjectId = async (req, res) => {
     try {
-        const { subject } = req.params;
+        const { subjectId } = req.params;
 
-        // Delete all CO-PO Matrix entries for the given subject
-        const deletedEntries = await COPOMatrix.deleteMany({ course: subject });
-
-        if (deletedEntries.deletedCount === 0) {
-            return res.status(404).json({ message: 'No CO-PO Matrix entries found for the specified subject' });
+        // Validate if subject exists
+        const subject = await Subject.findById(subjectId);
+        if (!subject) {
+            return res.status(404).json({ message: "Subject not found" });
         }
 
-        res.json({ message: `All CO-PO Matrix entries for subject '${subject}' deleted successfully` });
+        // Delete all COPO entries related to the given subject ID
+        const result = await COPOMatrix.deleteMany({ subject: subjectId });
+
+        res.status(200).json({ message: `Deleted ${result.deletedCount} COPO entries for the subject.` });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting CO-PO Matrix entries for the specified subject', error });
+        res.status(500).json({ message: error.message });
     }
 };
 
+/**COPO Average APIs */
 const COPOAverage = require('../models/COPOAverageModel');
 
-// Calculate and store average PO attainment for a course
 exports.saveCOPOAverage = async (req, res) => {
-    const { course, averages } = req.body; // `averages` should be an array of 12 values
-    
-    if (!course || !averages || averages.length !== 12) {
-        return res.status(400).json({ error: 'Invalid data format' });
-    }
-
     try {
-        const updateData = {};
-        averages.forEach((avg, index) => {
-            updateData[`po${index + 1}_avg`] = avg;
+        const { subjectId } = req.params;
+
+        // Validate if subject exists
+        const subject = await Subject.findById(subjectId);
+        if (!subject) {
+            return res.status(404).json({ message: "Subject not found" });
+        }
+
+        // Fetch all COPO entries for the given subject
+        const copoEntries = await COPOMatrix.find({ subject: subjectId });
+
+        if (copoEntries.length === 0) {
+            return res.status(404).json({ message: "No COPO entries found for this subject" });
+        }
+
+        // Initialize sum object
+        const sumValues = {
+            po1_avg: 0, po2_avg: 0, po3_avg: 0, po4_avg: 0, po5_avg: 0,
+            po6_avg: 0, po7_avg: 0, po8_avg: 0, po9_avg: 0, po10_avg: 0,
+            po11_avg: 0, po12_avg: 0, pso1_avg: 0, pso2_avg: 0
+        };
+
+        // Sum up all PO/PSO values
+        copoEntries.forEach(entry => {
+            for (let key in sumValues) {
+                const field = key.replace('_avg', ''); // Remove "_avg" to match COPOMatrix keys
+                if (entry[field] !== undefined && entry[field] !== null) {
+                    sumValues[key] += Number(entry[field]) || 0; // Ensure it's a number
+                }
+            }
         });
 
+        // Compute averages
+        const avgValues = {};
+        for (let key in sumValues) {
+            avgValues[key] = parseFloat((sumValues[key] / copoEntries.length).toFixed(2)); // Compute correct average
+        }
+
+        // Save or Update COPOAverage entry with subject reference
         const updatedAverage = await COPOAverage.findOneAndUpdate(
-            { course },
-            { $set: updateData },
-            { new: true, upsert: true }
-        );
+            { subject: subjectId },
+            { subject: subjectId, ...avgValues },
+            { upsert: true, new: true }
+        ).populate("subject", "name"); // Populate subject details
 
         res.status(200).json(updatedAverage);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to save averages' });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// Get average PO attainment for a course
 exports.getCOPOAverage = async (req, res) => {
-    const { course } = req.params;
-
     try {
-        const copoAverage = await COPOAverage.findOne({ course });
+        const { subjectId } = req.params;
+
+        const copoAverage = await COPOAverage.findOne({ subject: subjectId }).populate("subject", "name");
 
         if (!copoAverage) {
-            return res.status(404).json({ error: 'No data found for this course' });
+            return res.status(404).json({ message: "No COPO average found for this subject" });
         }
 
         res.status(200).json(copoAverage);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch averages' });
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.deleteCOPOAverageBySubject = async (req, res) => {
+    try {
+        const { subjectId } = req.params;
+
+        // Validate Subject
+        const subject = await Subject.findById(subjectId);
+        if (!subject) {
+            return res.status(404).json({ message: "Subject not found" });
+        }
+
+        // Delete COPO Average entry
+        const deleted = await COPOAverage.findOneAndDelete({ subject: subjectId });
+
+        if (!deleted) {
+            return res.status(404).json({ message: "No COPO Average found for this subject" });
+        }
+
+        res.status(200).json({ message: "COPO Average deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
