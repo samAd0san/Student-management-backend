@@ -192,15 +192,16 @@ exports.updateCOPOById = async (req, res) => {
 
 exports.deleteCOPOById = async (req, res) => {
     try {
-        const { copoId } = req.params;
+        const { coId } = req.params;
 
-        const deletedCOPOMatrix = await COPOMatrix.findByIdAndDelete(copoId);
+        // Find and delete a single COPO entry where courseOutcome._id matches coId
+        const deletedEntry = await COPOMatrix.findOneAndDelete({ "courseOutcome._id": coId });
 
-        if (!deletedCOPOMatrix) {
-            return res.status(404).json({ message: "COPO entry not found" });
+        if (!deletedEntry) {
+            return res.status(404).json({ message: "COPO entry not found for the given Course Outcome ID" });
         }
 
-        res.status(200).json({ message: "COPO entry deleted successfully" });
+        res.status(200).json({ message: "COPO entry deleted successfully", deletedEntry });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
