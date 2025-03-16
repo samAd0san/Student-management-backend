@@ -4,10 +4,10 @@ const Attendance = require('../models/attendanceModel');
 const Subject = require('../models/subjectModel'); // Import Subject model
 const Marks = require('../models/marksModel');
 
-// Create a new student along with attendance
+// Create a new student
 exports.createStudent = async (req, res) => {
   try {
-    const { rollNo, name, branch, currentYear, currentSemester, section, history, attendance: attendanceData } = req.body;
+    const { rollNo, name, branch, currentYear, currentSemester, section } = req.body;
 
     // Create new student object
     const newStudent = new Student({
@@ -17,38 +17,9 @@ exports.createStudent = async (req, res) => {
       currentYear,
       currentSemester,
       section,
-      history,
     });
 
-    // Check if attendance data is provided
-    if (attendanceData && attendanceData.length > 0) {
-      const attendanceRecords = await Promise.all(attendanceData.map(async (att) => {
-        const { subject, totalClasses, classesAttended, period } = att;
-
-        // Check if the subject exists
-        const subjectRecord = await Subject.findById(subject);
-        if (!subjectRecord) {
-          throw new Error(`Subject with ID ${subject} not found`);
-        }
-
-        // Create new attendance record for each attendance entry
-        const attendanceRecord = new Attendance({
-          student: newStudent._id,  // Link attendance to the student
-          subject,
-          totalClasses,
-          classesAttended,
-          period,
-        });
-
-        await attendanceRecord.save();
-        return attendanceRecord._id; // Return the created attendance ID
-      }));
-
-      // Assign the created attendance records to the student's attendance array
-      newStudent.attendance = attendanceRecords;
-    }
-
-    // Save the student with attendance records
+    // Save the student
     await newStudent.save();
     res.status(201).json(newStudent);
   } catch (error) {
@@ -59,7 +30,7 @@ exports.createStudent = async (req, res) => {
 // Get all students
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find({}, { __v: 0 }).populate('attendance'); // Populate attendance data
+    const students = await Student.find({}, { __v: 0 });
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -69,7 +40,7 @@ exports.getAllStudents = async (req, res) => {
 // Get a single student by roll number
 exports.getStudentByRollNo = async (req, res) => {
   try {
-    const student = await Student.findOne({ rollNo: req.params.rollNo }).populate('attendance'); // Populate attendance data
+    const student = await Student.findOne({ rollNo: req.params.rollNo });
     if (!student) return res.status(404).json({ message: 'Student not found' });
     res.status(200).json(student);
   } catch (error) {
@@ -84,7 +55,7 @@ exports.updateStudent = async (req, res) => {
       { rollNo: req.params.rollNo },
       req.body,
       { new: true } // Return the updated student
-    ).populate('attendance'); // Populate attendance data
+    );
 
     if (!student) return res.status(404).json({ message: 'Student not found' });
     res.status(200).json(student);
@@ -129,10 +100,6 @@ exports.createAttendance = async (req, res) => {
 
     await attendance.save();
     
-    // Add attendance to student's attendance array
-    student.attendance.push(attendance._id);
-    await student.save();
-
     res.status(201).json(attendance);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -162,11 +129,12 @@ exports.getAttendanceByPeriodMonthYear = async (req, res) => {
 exports.getAttendanceByStudent = async (req, res) => {
   try {
     const { rollNo } = req.params;
-    const student = await Student.findOne({ rollNo }).populate('attendance'); // Populate attendance data
+    const student = await Student.findOne({ rollNo });
 
     if (!student) return res.status(404).json({ message: 'Student not found' });
     
-    res.status(200).json(student.attendance);
+    const attendanceRecords = await Attendance.find({ student: student._id }).populate('subject', 'name _id');
+    res.status(200).json(attendanceRecords);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -189,12 +157,6 @@ exports.deleteAttendance = async (req, res) => {
     const attendance = await Attendance.findByIdAndDelete(req.params.id);
     if (!attendance) return res.status(404).json({ message: 'Attendance record not found' });
     
-    // Optionally, remove attendance ID from the associated student's attendance array
-    await Student.updateOne(
-      { _id: attendance.student },
-      { $pull: { attendance: attendance._id } } // Remove the attendance record reference from the student
-    );
-
     res.status(204).json(); // No content to send back
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -213,14 +175,22 @@ exports.getFilteredStudentsWithAttendance = async (req, res) => {
     if (semester) filter.currentSemester = semester;
     if (section) filter.section = section;
 
-    // Fetch students with attendance records populated
-    const students = await Student.find(filter)
-      .populate({
-        path: 'attendance',
-        match: { subject: subjectId, period: period }  // Match attendance for subject and period (15th/30th)
-      });
+    // Fetch students based on the filter criteria
+    const students = await Student.find(filter);
 
-    res.status(200).json(students);
+    // Fetch attendance records based on subject and period
+    const attendanceRecords = await Attendance.find({ subject: subjectId, period: period });
+
+    // Match attendance records with students
+    const studentsWithAttendance = students.map(student => {
+      const studentAttendance = attendanceRecords.filter(record => record.student.toString() === student._id.toString());
+      return {
+        ...student.toObject(),
+        attendance: studentAttendance
+      };
+    });
+
+    res.status(200).json(studentsWithAttendance);
   } catch (error) {
     res.status(500).json({ message: error.message });
     console.log(error);
