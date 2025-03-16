@@ -1,4 +1,4 @@
-const CourseOutcome = require('../models/courseOutcomeModel');
+const CourseOutcome = require('../models/CourseOutcomeModel');
 const Subject = require('../models/subjectModel');
 
 /** CO APIs */
