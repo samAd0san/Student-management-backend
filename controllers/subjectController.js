@@ -34,6 +34,18 @@ exports.getSubjectsByBranchYearSemester = async (req, res) => {
   }
 };
 
+// Get subjects by branch, year, sem, regulation
+exports.getSubjectsByBranchYearSemesterRegulation = async (req, res) => {
+  try {
+    const { branch, year, semester, regulation } = req.params; // Destructure branch, year, and semester from request parameters
+    const subjects = await Subject.find({ branch, year, semester, regulation }); // Find subjects by branch, year, and semester
+    if (subjects.length === 0) return res.status(404).json({ message: 'No subjects found for this branch, year, semester, and regulation' });
+    res.status(200).json(subjects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get a single subject by ID
 exports.getSubjectById = async (req, res) => {
   try {

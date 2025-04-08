@@ -8,8 +8,11 @@ router.post('/', subjectController.createSubject);
 // Get all subjects
 router.get('/', subjectController.getAllSubjects);
 
-// Get subjects by branch, year, and semester -> Use this 
+// Get subjects by branch, year, and semester
 router.get('/branch/:branch/year/:year/semester/:semester', subjectController.getSubjectsByBranchYearSemester);
+
+// Get subjects by branch, year, and semester, and regulation
+router.get('/branch/:branch/year/:year/semester/:semester/regulation/:regulation', subjectController.getSubjectsByBranchYearSemesterRegulation);
 
 // Get a single subject by ID
 router.get('/:id', subjectController.getSubjectById);
