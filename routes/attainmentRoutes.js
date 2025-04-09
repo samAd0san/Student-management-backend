@@ -9,6 +9,15 @@ router.put("/:id", attainmentController.updateAttainment);
 router.delete("/:id", attainmentController.deleteAttainment);
 
 // Get attainment by subjectId and examType
-router.get('/subject/:id/examType/:examType', attainmentController.getAttainmentsBySubjectAndExamType);
+router.get(
+  "/subject/:subjectId/examType/:examType",
+  attainmentController.getAttainmentsBySubjectAndExamType
+);
+
+// Update attainment by subjectId and examType
+router.put(
+  "/subject/:subjectId/examType/:examType",
+  attainmentController.updateAttainmentsBySubjectAndExamType
+);
 
 module.exports = router;

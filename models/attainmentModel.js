@@ -16,7 +16,7 @@ const attainmentSchema = new mongoose.Schema(
         },
         attainmentLevel: {
           type: Number,
-          required: true,
+          required: false,
         },
       },
     ],
