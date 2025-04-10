@@ -49,6 +49,22 @@ exports.getAttainmentsBySubjectAndExamType = async (req, res) => {
   }
 };
 
+// Get attainment by subjectId and attainmentType
+exports.getAttainmentsBySubjectAndAttainmentType = async (req, res) => {
+  const { subjectId, attainmentType } = req.params;
+
+  try {
+    const data = await Attainment.find({
+      subject: subjectId,
+      attainmentType: attainmentType,
+    }).populate("subject");
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Update attainment by ID
 exports.updateAttainment = async (req, res) => {
   try {

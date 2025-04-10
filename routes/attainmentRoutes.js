@@ -14,6 +14,12 @@ router.get(
   attainmentController.getAttainmentsBySubjectAndExamType
 );
 
+// Get attainment by subjectId and attainmentType
+router.get(
+  "/subject/:subjectId/attainmentType/:attainmentType",
+  attainmentController.getAttainmentsBySubjectAndAttainmentType
+);
+
 // Update attainment by subjectId and examType
 router.put(
   "/subject/:subjectId/examType/:examType",

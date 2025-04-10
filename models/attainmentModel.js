@@ -22,12 +22,12 @@ const attainmentSchema = new mongoose.Schema(
     ],
     attainmentType: {
       type: String,
-      enum: ["direct", "indirect"],
+      enum: ["direct", "indirect", "computedDirect", "computedIndirect"],
       required: true,
     },
     examType: {
       type: String,
-      enum: ["CIE-1", "CIE-2", "SEE"],
+      enum: ["CIE-1", "CIE-2", "SEE", "COMPUTED"],
       required: true,
     },
   },
