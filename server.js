@@ -7,6 +7,7 @@ const subjectRoutes = require('./routes/subjectRoutes');
 const marksRoutes = require('./routes/marksRoutes');
 const InternalMarks = require('./routes/internalMarksRoutes');
 const courseRoutes = require('./routes/courseRoutes');
+const attainmentRoutes = require('./routes/attainmentRoutes');
 
 const app = express();
 const PORT = 3000 || process.env.PORT;
@@ -23,6 +24,7 @@ app.use('/api/subjects', subjectRoutes);
 app.use('/api/marks', marksRoutes);
 app.use('/api/internalMarks', InternalMarks);
 app.use('/api/co', courseRoutes);
+app.use('/api/attainment', attainmentRoutes);
 
 
 app.listen(PORT, (err) => {
