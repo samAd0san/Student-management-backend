@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config(); // Load environment variables from .env file
 
-const mongoDbURL = process.env.MONGODB_URI; // Use the URI from the .env file
+const mongoDbURL = process.env.ATLAS_URI; // Use the URI from the .env file
 
 const connectDB = async () => {
     try {

@@ -38,6 +38,28 @@ exports.getFeedbackAttainmentById = async (req, res) => {
   }
 };
 
+// Get feedback attainments by subject ID
+exports.getFeedbackAttainmentsBySubjectId = async (req, res) => {
+  try {
+    const subjectId = req.params.id;
+    const feedbackAttainments = await FeedbackAttainment.find({
+      subject: subjectId,
+    })
+      .populate("student", "name rollNo")
+      .populate("subject", "_id name");
+
+    if (!feedbackAttainments || feedbackAttainments.length === 0) {
+      return res.status(404).json({
+        message: "No feedback attainments found for the given subject ID.",
+      });
+    }
+
+    res.status(200).json(feedbackAttainments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Update a feedback attainment by ID
 exports.updateFeedbackAttainment = async (req, res) => {
   try {

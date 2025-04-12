@@ -12,6 +12,12 @@ router.get("/", feedbackAttainmentController.getAllFeedbackAttainments);
 // Get a single feedback attainment by ID
 router.get("/:id", feedbackAttainmentController.getFeedbackAttainmentById);
 
+// Get feedback attainments by subject ID
+router.get(
+  "/subject/:id",
+  feedbackAttainmentController.getFeedbackAttainmentsBySubjectId
+);
+
 // Update a feedback attainment by ID
 router.put("/:id", feedbackAttainmentController.updateFeedbackAttainment);
 
