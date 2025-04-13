@@ -6,12 +6,12 @@ exports.createAttainment = async (req, res) => {
 
   try {
     // Check if a record already exists for the same subject and examType
-    const existing = await Attainment.findOne({ subject, examType });
+    const existing = await Attainment.findOne({ subject, examType, attainmentType: req.body.attainmentType });
 
     if (existing) {
       return res.status(400).json({
         message:
-          "An attainment record already exists for this subject and exam type.",
+          "An attainment record already exists for this subject, exam type and attainmentType.",
       });
     }
 
