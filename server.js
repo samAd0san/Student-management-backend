@@ -26,7 +26,7 @@ app.use('/api/marks', marksRoutes);
 app.use('/api/internalMarks', InternalMarks);
 app.use('/api/co', courseRoutes);
 app.use('/api/attainment', attainmentRoutes);
-app.use('/api/feebackattainment', feedbackAttainmentRoutes);
+app.use('/api/feedbackattainment', feedbackAttainmentRoutes);
 
 
 app.listen(PORT, (err) => {
