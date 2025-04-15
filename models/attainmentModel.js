@@ -22,7 +22,7 @@ const attainmentSchema = new mongoose.Schema(
     ],
     attainmentType: {
       type: String,
-      enum: ["direct", "indirect", "computedDirect", "computedIndirect"],
+      enum: ["direct", "indirect", "computedDirect", "computedIndirect", "computedOverall"],
       required: true,
     },
     examType: {
