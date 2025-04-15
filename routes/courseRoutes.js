@@ -17,4 +17,9 @@ router.patch('/copo-matrix/:copoId', CourseController.updateCOPOById);
 router.delete('/copo-matrix/:copoId', CourseController.deleteCOPOById);
 router.delete('/copo-matrices/:subjectId', CourseController.deleteAllCOPOBySubjectId);
 
+/** COPO Average Routes */
+router.post('/copo-average/:subjectId', CourseController.saveCOPOAverage);
+router.get('/copo-average/:subjectId', CourseController.getCOPOAverage);
+router.delete('/copo-average/:subjectId', CourseController.deleteCOPOAverageBySubject);
+
 module.exports = router;
