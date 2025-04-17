@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const studentSchema = new mongoose.Schema({
   rollNo: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  fatherName: { type: String, required: true },
+  fatherName: { type: String, required: false },
   branch: { type: String, required: true },
   currentYear: { type: Number, required: true },
   currentSemester: { type: Number, required: true },

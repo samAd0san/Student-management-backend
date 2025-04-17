@@ -3,9 +3,8 @@ const Subject = require('../models/subjectModel');
 // Create a new subject
 exports.createSubject = async (req, res) => {
   try {
-    const subject = new Subject(req.body);
-    await subject.save();
-    res.status(201).json(subject);
+    const subjects = await Subject.insertMany(req.body);
+    res.status(201).json(subjects);
   } catch (error) {
     res.status(400).json({ message: error.message });
     console.log(error);

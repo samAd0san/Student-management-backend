@@ -7,7 +7,7 @@ const Marks = require('../models/marksModel');
 // Create a new student
 exports.createStudent = async (req, res) => {
   try {
-    const { rollNo, name, branch, currentYear, currentSemester, section } = req.body;
+    const { rollNo, name, branch, currentYear, currentSemester, section, fatherName } = req.body;
 
     // Create new student object
     const newStudent = new Student({
@@ -17,6 +17,7 @@ exports.createStudent = async (req, res) => {
       currentYear,
       currentSemester,
       section,
+      fatherName,
     });
 
     // Save the student
