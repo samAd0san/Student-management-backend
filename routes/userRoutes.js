@@ -1,15 +1,15 @@
 const express = require("express");
 const userController = require("../controllers/userController");
-const auth = require("../middlewares/auth");
+const { tokenAuth, adminAuth } = require("../middlewares/auth");
 
 const router = express.Router();
 
-router.post("/signup", userController.signup);
-router.post("/signin", userController.signin);
+// Admin only routes
+router.post("/signup", tokenAuth, adminAuth, userController.signup);
+router.get("/all", tokenAuth, adminAuth, userController.getAllUsers);
+router.delete("/:userId", tokenAuth, adminAuth, userController.deleteUser);
 
-// Protected route example
-router.get("/profile", auth, (req, res) => {
-  res.json({ message: "Protected route accessed successfully" });
-});
+// Public route
+router.post("/signin", userController.signin);
 
 module.exports = router;
