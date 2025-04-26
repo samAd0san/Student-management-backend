@@ -183,6 +183,9 @@ exports.getAttainmentData = async (req, res) => {
     
     // Process internal marks and organize by studentId
     internalMarks.forEach(mark => {
+      // Skip records with null/undefined student
+      if (!mark.student) return;
+
       const studentId = mark.student._id.toString();
       
       const q1Total = mark.marks.Q1.a + mark.marks.Q1.b + mark.marks.Q1.c;
@@ -220,6 +223,9 @@ exports.getAttainmentData = async (req, res) => {
     const studentMarks = {};
     
     allMarks.forEach(mark => {
+      // Skip records with null/undefined student
+      if (!mark.student) return;
+    
       const studentId = mark.student._id.toString();
       
       if (!studentMarks[studentId]) {
