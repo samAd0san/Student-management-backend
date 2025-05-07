@@ -1,5 +1,6 @@
 const express = require("express");
 const feedbackAttainmentController = require("../controllers/feedbackAttainmentController");
+const { tokenAuth, adminAuth } = require("../middlewares/auth");
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get(
 );
 
 // Update a feedback attainment by ID
-router.put("/:id", feedbackAttainmentController.updateFeedbackAttainment);
+router.put("/:id", tokenAuth, adminAuth, feedbackAttainmentController.updateFeedbackAttainment);
 
 // Delete a feedback attainment by ID
 router.delete("/:id", feedbackAttainmentController.deleteFeedbackAttainment);

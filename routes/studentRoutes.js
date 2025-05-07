@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const studentController = require('../controllers/studentController');
+const { tokenAuth, adminAuth } = require("../middlewares/auth");
 
 // Create a new attendance record
 router.post('/attendance', studentController.createAttendance);
@@ -12,7 +13,7 @@ router.get('/attendance/:rollNo', studentController.getAttendanceByStudent);
 router.get('/attendance/month/:month/year/:year/period/:period', studentController.getAttendanceByPeriodMonthYear);
 
 // Update attendance record
-router.put('/attendance/:id', studentController.updateAttendance);
+router.put('/attendance/:id', tokenAuth, adminAuth, studentController.updateAttendance);
 
 // Delete attendance record
 router.delete('/attendance/:id', studentController.deleteAttendance);
@@ -38,7 +39,7 @@ router.get('/:rollNo', studentController.getStudentByRollNo);
 router.get('/:rollNo/marks', studentController.getStudentMarks);
 
 // Update a student
-router.put('/:rollNo', studentController.updateStudent);
+router.put('/:rollNo', tokenAuth, adminAuth, studentController.updateStudent);
 
 // Delete a student
 router.delete('/:rollNo', studentController.deleteStudent);

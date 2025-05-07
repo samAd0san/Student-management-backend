@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const subjectController = require('../controllers/subjectController');
+const { tokenAuth, adminAuth } = require("../middlewares/auth");
 
 // Create a new subject
 router.post('/', subjectController.createSubject);
@@ -18,7 +19,7 @@ router.get('/branch/:branch/year/:year/semester/:semester/regulation/:regulation
 router.get('/:id', subjectController.getSubjectById);
 
 // Update a subject
-router.put('/:id', subjectController.updateSubject);
+router.put('/:id', tokenAuth, adminAuth, subjectController.updateSubject);
 
 // Delete a subject
 router.delete('/:id', subjectController.deleteSubject);

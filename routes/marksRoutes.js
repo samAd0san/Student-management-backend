@@ -8,12 +8,13 @@ const {
   getAvgOfBestTwoSurpriseAndAssignment,
   getAttainmentData
 } = require("../controllers/marksController");
+const { tokenAuth, adminAuth } = require("../middlewares/auth");
 
 // Add/Update Marks
 router.post("/", addMarks);
 
 // Update Marks (PUT)
-router.put("/:subject_id/:examType/:id", updateMarks); // Use id to identify the marks entry
+router.put("/:subject_id/:examType/:id", tokenAuth, adminAuth, updateMarks); // Use id to identify the marks entry
 
 // Get Marks for a Subject and Exam Type
 router.get("/:subject_id/:examType", getMarks);
