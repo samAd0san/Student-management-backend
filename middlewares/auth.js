@@ -13,10 +13,20 @@ const tokenAuth = (req, res, next) => {
     if (err) {
       res.status(401).send("Unauthorized");
     } else {
-      console.log(decoded);
+      req.user = decoded; // Store decoded user info in request
       next();
     }
   });
 };
 
-module.exports = tokenAuth;
+const adminAuth = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).send("Access Denied. Admin privileges required.");
+  }
+  next();
+};
+
+module.exports = {
+  tokenAuth,
+  adminAuth
+};
