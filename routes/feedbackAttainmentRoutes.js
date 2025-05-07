@@ -20,7 +20,7 @@ router.get(
 );
 
 // Update a feedback attainment by ID
-router.put("/:id", tokenAuth, adminAuth, feedbackAttainmentController.updateFeedbackAttainment);
+router.put("/:id", feedbackAttainmentController.updateFeedbackAttainment);
 
 // Delete a feedback attainment by ID
 router.delete("/:id", feedbackAttainmentController.deleteFeedbackAttainment);

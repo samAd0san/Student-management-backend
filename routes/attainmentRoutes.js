@@ -1,12 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const attainmentController = require("../controllers/attainmentController");
-const { tokenAuth, adminAuth } = require("../middlewares/auth");
 
 // CRUD operations for Attainment
 router.post("/", attainmentController.createAttainment);
 router.get("/", attainmentController.getAllAttainments);
-router.put("/:id", tokenAuth, adminAuth, attainmentController.updateAttainment);
+router.put("/:id", attainmentController.updateAttainment);
 router.delete("/:id", attainmentController.deleteAttainment);
 
 // Get attainment by subjectId and examType
@@ -23,7 +22,7 @@ router.get(
 
 // Update attainment by subjectId and examType
 router.put(
-  "/subject/:subjectId/examType/:examType", tokenAuth, adminAuth,
+  "/subject/:subjectId/examType/:examType",
   attainmentController.updateAttainmentsBySubjectAndExamType
 );
 
